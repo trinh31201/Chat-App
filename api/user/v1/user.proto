@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package api.user.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/yourusername/chat-app/api/user/v1;v1";
+
+// User service for authentication and user management
+service UserService {
+  // Register a new user
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/register"
+      body: "*"
+    };
+  }
+
+  // Login user
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/login"
+      body: "*"
+    };
+  }
+
+  // Get user profile
+  rpc GetUser(GetUserRequest) returns (User) {
+    option (google.api.http) = {
+      get: "/api/v1/users/{id}"
+    };
+  }
+
+  // Update user status (online/offline/away)
+  rpc UpdateStatus(UpdateStatusRequest) returns (UpdateStatusResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/users/{user_id}/status"
+      body: "*"
+    };
+  }
+}
+
+// User model
+message User {
+  int64 id = 1;
+  string username = 2;
+  string email = 3;
+  string avatar_url = 4;
+  string status = 5; // online, offline, away
+  int64 last_seen = 6; // Unix timestamp
+  int64 created_at = 7;
+}
+
+message RegisterRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message RegisterResponse {
+  User user = 1;
+  string token = 2; // JWT token
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  User user = 1;
+  string token = 2; // JWT token
+}
+
+message GetUserRequest {
+  int64 id = 1;
+}
+
+message UpdateStatusRequest {
+  int64 user_id = 1;
+  string status = 2; // online, offline, away
+}
+
+message UpdateStatusResponse {
+  bool success = 1;
+  string status = 2;
+}

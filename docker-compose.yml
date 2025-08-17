@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: newchat-postgres
+    environment:
+      POSTGRES_USER: chatuser
+      POSTGRES_PASSWORD: chatpass
+      POSTGRES_DB: chatdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - newchat_postgres_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - chat-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: newchat-redis
+    ports:
+      - "6381:6379"
+    networks:
+      - chat-network
+
+  chat-app:
+    build: .
+    container_name: newchat-app
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+    ports:
+      - "8001:8000"  # HTTP/REST
+      - "9001:9000"  # gRPC
+    volumes:
+      - ./configs:/root/configs
+    networks:
+      - chat-network
+    restart: unless-stopped
+
+volumes:
+  newchat_postgres_data:
+
+networks:
+  chat-network:
+    driver: bridge

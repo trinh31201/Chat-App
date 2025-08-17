@@ -1,0 +1,64 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+.docker/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+
+# Build artifacts
+bin/
+dist/
+build/
+
+# Dependencies
+vendor/
+
+# Test coverage
+coverage.out
+coverage.html
+
+# Temporary files
+tmp/
+temp/
+
+# Configuration (keep example configs)
+configs/config.yaml
+!configs/config.example.yaml
+
+# Planning documents and notes
+2025-08-16-read-my-project-i-want-to-make-a-simple-chat-app.txt
+2025-08-16-usersmacbooklearngowebchat-app2025-08-16-r.txt
+Auto Create Event Plan.txt

@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+package api.chat.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/yourusername/chat-app/api/chat/v1;v1";
+
+// Chat service for messaging functionality
+service ChatService {
+  // Send a message
+  rpc SendMessage(SendMessageRequest) returns (Message) {
+    option (google.api.http) = {
+      post: "/api/v1/messages"
+      body: "*"
+    };
+  }
+
+  // Get messages for a room
+  rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/rooms/{room_id}/messages"
+    };
+  }
+
+  // Stream messages in real-time (gRPC only - no HTTP mapping)
+  rpc StreamMessages(StreamMessagesRequest) returns (stream Message);
+
+  // Mark message as read
+  rpc MarkAsRead(MarkAsReadRequest) returns (MarkAsReadResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/messages/{message_id}/read"
+      body: "*"
+    };
+  }
+}
+
+// Room service for room management
+service RoomService {
+  // Create a new room
+  rpc CreateRoom(CreateRoomRequest) returns (Room) {
+    option (google.api.http) = {
+      post: "/api/v1/rooms"
+      body: "*"
+    };
+  }
+
+  // Get room details
+  rpc GetRoom(GetRoomRequest) returns (Room) {
+    option (google.api.http) = {
+      get: "/api/v1/rooms/{id}"
+    };
+  }
+
+  // List user's rooms
+  rpc ListRooms(ListRoomsRequest) returns (ListRoomsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users/{user_id}/rooms"
+    };
+  }
+
+  // Join a room
+  rpc JoinRoom(JoinRoomRequest) returns (JoinRoomResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/rooms/{room_id}/join"
+      body: "*"
+    };
+  }
+
+  // Leave a room
+  rpc LeaveRoom(LeaveRoomRequest) returns (LeaveRoomResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/rooms/{room_id}/leave"
+      body: "*"
+    };
+  }
+}
+
+// Message model
+message Message {
+  int64 id = 1;
+  int64 room_id = 2;
+  int64 user_id = 3;
+  string username = 4; // Denormalized for performance
+  string content = 5;
+  string type = 6; // text, image, file, system
+  bool is_edited = 7;
+  int64 created_at = 8; // Unix timestamp
+  int64 edited_at = 9;
+}
+
+// Room model
+message Room {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+  string type = 4; // public, private, direct
+  int64 created_by = 5;
+  int32 member_count = 6;
+  int64 created_at = 7;
+  repeated RoomMember members = 8;
+}
+
+message RoomMember {
+  int64 user_id = 1;
+  string username = 2;
+  string role = 3; // admin, moderator, member
+  int64 joined_at = 4;
+}
+
+// Request/Response messages
+message SendMessageRequest {
+  int64 room_id = 1;
+  string content = 2;
+  string type = 3; // text, image, file
+}
+
+message GetMessagesRequest {
+  int64 room_id = 1;
+  int32 limit = 2; // Number of messages to return
+  int64 before_id = 3; // Get messages before this ID (for pagination)
+}
+
+message GetMessagesResponse {
+  repeated Message messages = 1;
+  bool has_more = 2;
+}
+
+message StreamMessagesRequest {
+  int64 room_id = 1;
+  int64 user_id = 2;
+}
+
+message MarkAsReadRequest {
+  int64 message_id = 1;
+  int64 user_id = 2;
+}
+
+message MarkAsReadResponse {
+  bool success = 1;
+}
+
+message CreateRoomRequest {
+  string name = 1;
+  string description = 2;
+  string type = 3; // public, private
+}
+
+message GetRoomRequest {
+  int64 id = 1;
+}
+
+message ListRoomsRequest {
+  int64 user_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListRoomsResponse {
+  repeated Room rooms = 1;
+  int32 total = 2;
+}
+
+message JoinRoomRequest {
+  int64 room_id = 1;
+  int64 user_id = 2;
+}
+
+message JoinRoomResponse {
+  bool success = 1;
+  Room room = 2;
+}
+
+message LeaveRoomRequest {
+  int64 room_id = 1;
+  int64 user_id = 2;
+}
+
+message LeaveRoomResponse {
+  bool success = 1;
+}
