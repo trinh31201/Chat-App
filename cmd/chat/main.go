@@ -6,11 +6,13 @@ import (
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
+	"github.com/go-kratos/kratos/v2/config/env"
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/joho/godotenv"
 
 	"github.com/yourusername/chat-app/internal/conf"
 )
@@ -47,7 +49,10 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 
 func main() {
 	flag.Parse()
-	
+
+	// Load .env file (ignore error if file doesn't exist, e.g., in Railway)
+	_ = godotenv.Load()
+
 	// Initialize logger
 	logger := log.With(log.NewStdLogger(os.Stdout),
 		"ts", log.DefaultTimestamp,
@@ -59,12 +64,19 @@ func main() {
 		"span.id", tracing.SpanID(),
 	)
 
-	// Load configuration
-	c := config.New(
-		config.WithSource(
-			file.NewSource(flagconf),
-		),
-	)
+	// Load configuration from both file (if exists) and environment variables
+	// Environment variables take precedence over file values
+	sources := []config.Source{env.NewSource()}
+
+	// Add file source only if config directory exists
+	if _, err := os.Stat(flagconf); err == nil {
+		sources = append([]config.Source{file.NewSource(flagconf)}, sources...)
+		logger.Log(log.LevelInfo, "msg", "Loading config from file", "path", flagconf)
+	} else {
+		logger.Log(log.LevelInfo, "msg", "Config file not found, using environment variables only")
+	}
+
+	c := config.New(config.WithSource(sources...))
 	defer c.Close()
 
 	if err := c.Load(); err != nil {

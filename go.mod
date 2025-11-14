@@ -8,6 +8,7 @@ require (
 	github.com/go-kratos/kratos/v2 v2.8.4
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/wire v0.6.0
+	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/redis/go-redis/v9 v9.12.0
 	golang.org/x/crypto v0.41.0
